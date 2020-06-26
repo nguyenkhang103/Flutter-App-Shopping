@@ -16,8 +16,9 @@ class ProductItem {
   String price;
   String title;
   String brand;
+  int qty;
   List<ProductInfo> productInfo = [];
-  ProductItem(this.type,this.isSelected,this.itemColor,this.imagePath,this.price,this.title,this.brand,{this.productInfo});
+  ProductItem(this.type,this.isSelected,this.itemColor,this.imagePath,this.price,this.title,this.brand,{this.productInfo, this.qty = 1});
 }
 class ProductInfo {
   String description;

@@ -6,6 +6,9 @@ import 'package:shopping_app_flutter/views/content_page/list_product.dart';
 import 'package:shopping_app_flutter/views/content_page/menu_item.dart';
 
 class MenuProductNavigator extends StatefulWidget {
+  final List<ProductItem> cartProducts;
+
+  const MenuProductNavigator({Key key, this.cartProducts}) : super(key: key);
   @override
   _MenuProductNavigatorState createState() => _MenuProductNavigatorState();
 }
@@ -124,7 +127,7 @@ class _MenuProductNavigatorState extends State<MenuProductNavigator> {
           children: <Widget>[
             categoryWidget(),
             titleBar(),
-            ListProduct(listTmp),
+            ListProduct(listTmp,widget.cartProducts),
             imageBannerTitleWidget(),
             ImageBanner(images),
             //  CarouselMenu()
@@ -145,7 +148,7 @@ class _MenuProductNavigatorState extends State<MenuProductNavigator> {
           itemBuilder: (context, int index) {
             return Padding(
               padding: EdgeInsets.only(
-                  left: index == 0 ? 32 : 0, top: 0, bottom: 12),
+                  left: index == 0 ? 42 : 0, top: 0, bottom: 12),
               child: Row(
                 children: [
                   InkWell(
@@ -210,7 +213,7 @@ class _MenuProductNavigatorState extends State<MenuProductNavigator> {
         child: Row(
           children: <Widget>[
             Text(
-              'See all',
+              'See All',
               style: TextStyle(fontSize: 12.0, color: mainColor),
             ),
             Icon(

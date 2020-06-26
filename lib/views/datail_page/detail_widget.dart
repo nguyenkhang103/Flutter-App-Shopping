@@ -2,10 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shopping_app_flutter/domain/product.dart';
 import 'package:shopping_app_flutter/resource/colors.dart';
+import 'package:shopping_app_flutter/views/cart_page/cart.dart';
 
 class DetailWidget extends StatefulWidget {
   final ProductItem item;
-  const DetailWidget(this.item);
+  final List<ProductItem> products;
+  const DetailWidget(this.item, this.products);
   @override
   _DetailWidgetState createState() => _DetailWidgetState();
 }
@@ -74,10 +76,13 @@ class _DetailWidgetState extends State<DetailWidget> {
                         SizedBox(
                           width: 10,
                         ),
-                        Image.asset(
-                          'assets/icons/shopping-bag.png',
-                          color: Colors.blueGrey,
-                          width: 20,
+                        IconButton(
+                          icon: Image.asset(
+                            'assets/icons/shopping-bag.png',
+                            color: Colors.blueGrey,
+                            width: 20,
+                          ),
+                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => CartPage(products: widget.products,))),
                         ),
                       ],
                     ),
@@ -138,7 +143,7 @@ class _DetailWidgetState extends State<DetailWidget> {
                 ),
                 productInfoWidget(item),
                 descriptionProductWidget(),
-                buttonBuyWidget(),
+                buttonBuyWidget(item),
               ],
             ),
           ),
@@ -231,21 +236,27 @@ class _DetailWidgetState extends State<DetailWidget> {
     );
   }
 
-  Widget buttonBuyWidget() {
+  Widget buttonBuyWidget(ProductItem item) {
     return Container(
       width: MediaQuery.of(context).size.width,
       height: 50,
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(25), color: mainColor),
       child: Center(
-        child: Text(
-          'BUY NOW',
-          style: TextStyle(
-              fontSize: 18,
-              color: Colors.white,
-              fontFamily: 'MagnumSansExtraLight'),
+        child: FlatButton(
+          child: Text(
+            'BUY NOW',
+            style: TextStyle(
+                fontSize: 18,
+                color: Colors.white,
+                fontFamily: 'MagnumSansExtraLight'),
+          ),
+          onPressed: (){
+            widget.products.add(item);
+          },
         ),
       ),
+
     );
   }
   void onPressLike() {
