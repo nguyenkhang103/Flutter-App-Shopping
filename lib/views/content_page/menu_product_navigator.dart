@@ -33,17 +33,17 @@ class _MenuProductNavigatorState extends State<MenuProductNavigator> {
         true,
         mainColor,
         'assets/products/watch-1.png',
-        '\30.028.000 vnd',
+        1000.99,
         "Rado D-Star 200",
         "Rolex", productInfo: this.infosTmp));
     listProductClock.add(new ProductItem('Watch', true, secondColor,
-        'assets/products/watch-2.png', '\7.766.212 vnd', "Gaz-14", "Rolex",productInfo: this.infosTmp));
+        'assets/products/watch-2.png', 999.99, "Gaz-14", "Rolex",productInfo: this.infosTmp));
     listProductLamp.add(new ProductItem(
         'Lamp',
         true,
         mainColor,
         'assets/products/hanginglight.png',
-        '\10.028.000 vnd',
+        425.8,
         "Hanging Light",
         "Fab Interia",productInfo: this.infosTmp));
     listProductLamp.add(new ProductItem(
@@ -51,29 +51,29 @@ class _MenuProductNavigatorState extends State<MenuProductNavigator> {
         true,
         secondColor,
         'assets/products/desklamp.png',
-        '\8.766.212 vnd',
+        329.5,
         "Desk Lamp",
         "HMVPL",productInfo: this.infosTmp));
     listProductSofa.add(new ProductItem('Sofa', true, mainColor,
-        'assets/products/sofa-1.png', '\5.028.000 vnd', "Sofa Bed", "ZSofa",productInfo: this.infosTmp));
+        'assets/products/sofa-1.png', 250.99, "Sofa Bed", "ZSofa",productInfo: this.infosTmp));
     listProductSofa.add(new ProductItem('Sofa', true, secondColor,
-        'assets/products/sofa-2.png', '\8.766.212 vnd', "Sofa Bed", "ZSofa",productInfo: this.infosTmp));
+        'assets/products/sofa-2.png', 379.99, "Sofa Bed", "ZSofa",productInfo: this.infosTmp));
     listProductSofa.add(new ProductItem(
         'Sofa',
         true,
         thirdColor,
         'assets/products/sofa-3.png',
-        '\4.500.000 vnd',
+        145.25,
         "Sofa Armchair",
         "ZSofa",productInfo: this.infosTmp));
     listProductTable.add(new ProductItem('Table', true, mainColor,
-        'assets/products/table-1.png', '\1.028.000 vnd', "Table Cafe", "AGO",productInfo: this.infosTmp));
+        'assets/products/table-1.png', 102.8, "Table Cafe", "AGO",productInfo: this.infosTmp));
     listProductTable.add(new ProductItem(
         'Table',
         true,
         secondColor,
         'assets/products/table-2.png',
-        '\2.766.212 vnd',
+        118.5,
         "Rivermead Cafe",
         "Rivermead",productInfo: this.infosTmp));
     listProductTable.add(new ProductItem(
@@ -81,7 +81,7 @@ class _MenuProductNavigatorState extends State<MenuProductNavigator> {
         true,
         thirdColor,
         'assets/products/table-3.png',
-        '\3.000.000 vnd',
+        120,
         "Table Work",
         "Go Home",productInfo: this.infosTmp));
     listPro.add(new Product(

@@ -13,7 +13,7 @@ class ProductItem {
   bool isSelected;
   Color itemColor;
   String imagePath;
-  String price;
+  double price;
   String title;
   String brand;
   int qty;

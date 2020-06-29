@@ -6,14 +6,22 @@ import 'package:shopping_app_flutter/resource/colors.dart';
 
 class ProductItemWidget extends StatefulWidget {
   final ProductItem item;
-
-  const ProductItemWidget({Key key, this.item}) : super(key: key);
+  final VoidCallback onDelete;
+  final Function  onSum;
+  ProductItemWidget({Key key, this.item, this.onDelete, this.onSum}) : super(key: key);
   @override
   _ProductItemWidgetState createState() => _ProductItemWidgetState();
 
 }
 
 class _ProductItemWidgetState extends State<ProductItemWidget>{
+  int _qyt = 1;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _qyt = widget.item.qty;
+  }
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -34,7 +42,7 @@ class _ProductItemWidgetState extends State<ProductItemWidget>{
             ),
             Container(
               alignment: Alignment.topLeft,
-              child: Text(widget.item.price, style: TextStyle(color: mainColor,fontFamily: 'MagnumSansBold',fontSize: 18.0),),
+              child: Text('\$'+widget.item.price.toString(), style: TextStyle(color: mainColor,fontFamily: 'MagnumSansBold',fontSize: 18.0),),
             ),
           ],
         ),
@@ -42,11 +50,29 @@ class _ProductItemWidgetState extends State<ProductItemWidget>{
 //          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Expanded(child: IconButton(icon: Icon(Icons.arrow_drop_up),padding: EdgeInsets.only(bottom: 2.0),onPressed: ()=>widget.item.qty + 1,)),
-            Expanded(child: Text(widget.item.qty.toString())),
-            Expanded(child: IconButton(icon: Icon(Icons.arrow_drop_down),padding: EdgeInsets.only(top:0.5),onPressed: ()=> widget.item.qty - 1,)),
+            Expanded(child: IconButton(icon: Icon(Icons.arrow_drop_up),padding: EdgeInsets.only(bottom: 2.0),onPressed: (){
+              setState(() {
+                _qyt++;
+//                widget.item.qty = _qyt;
+//                widget.totalPrice = widget.item.price * _qyt;
+//                print(widget.item.qty);
+              widget.onSum(_qyt);
+              });
+            })),
+            Expanded(child: Text(_qyt.toString())),
+            Expanded(child: IconButton(icon: Icon(Icons.arrow_drop_down),padding: EdgeInsets.only(top:0.5),onPressed: () {
+              setState(() {
+               _qyt > 0 ? _qyt-- : {};
+//               widget.item.qty = _qyt;
+               widget.onSum(_qyt);
+//               widget.totalPrice = widget.item.price * _qyt;
+//               print(widget.totalPrice);
+//              widget.onSum;
+              });
+            })),
           ],
         ),
+        onLongPress: widget.onDelete,
       ),
     );
   }

@@ -90,7 +90,7 @@ class _ListProductState extends State<ListProduct> {
               Padding(
                   padding: EdgeInsets.symmetric(horizontal: 18),
                   child: Text(
-                    item.price,
+                    '\$'+item.price.toString(),
                     style: TextStyle(color: Colors.white, fontSize: 14),
                   )),
               SizedBox(

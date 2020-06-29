@@ -35,7 +35,13 @@ class _MenuTopNavigatorState extends State<MenuTopNavigator> {
               'assets/icons/shopping-bag.png',
               width: 20,
             ),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => CartPage(products: widget.cartProducts,))),
+            onPressed: (){
+              if (widget.cartProducts.isNotEmpty) {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => CartPage(products: widget.cartProducts,)));
+              } else {
+                print('No products');
+              }
+            }
           ),
         ]));
   }
