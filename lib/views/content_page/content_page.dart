@@ -8,12 +8,14 @@ class ContentPage extends StatelessWidget{
   final List<ProductItem> cartProducts = List<ProductItem>();
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        MenuHeader(),
-        MenuTopNavigator(cartProducts: cartProducts,),
-        MenuProductNavigator(cartProducts: cartProducts,),
-      ],
+    return Scaffold(
+      body: Column(
+        children: [
+          MenuHeader(),
+          MenuTopNavigator(cartProducts: cartProducts,),
+          MenuProductNavigator(cartProducts: cartProducts,),
+        ],
+      ),
     );
   }
 
