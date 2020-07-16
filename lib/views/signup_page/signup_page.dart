@@ -7,22 +7,19 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shopping_app_flutter/resource/colors.dart';
 import 'package:shopping_app_flutter/views/content_page/content_page.dart';
-import 'package:provider/provider.dart';
-import 'package:shopping_app_flutter/views/signup_page/signup_page.dart';
 
-class LoginPage extends StatefulWidget {
+class SignUpPage extends StatefulWidget {
   @override
-  _LoginPageState createState() => _LoginPageState();
+  _SignUpPageState createState() => _SignUpPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
-  final GoogleSignIn _googleSignIn = new GoogleSignIn();
-  SharedPreferences sharedPreferences;
+class _SignUpPageState extends State<SignUpPage> {
+  GoogleSignIn _googleSignIn;
+  SharedPreferences _sharedPreferences;
   FirebaseAuth _auth = FirebaseAuth.instance;
   bool isLoading = false;
   bool isSignin = false;
   final _formKey = GlobalKey<FormState>();
-  final _key = GlobalKey<ScaffoldState>();
   TextEditingController _emailTextController = TextEditingController();
   TextEditingController _passwordTextController = TextEditingController();
   FlutterToast flutterToast;
@@ -30,7 +27,6 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-//    isSignedIn();
     flutterToast = FlutterToast(context);
   }
 
@@ -53,7 +49,7 @@ class _LoginPageState extends State<LoginPage> {
         SizedBox(
           width: 12.0,
         ),
-        Text("Login was successfully!"),
+        Text("SignUp was successfully!"),
       ],
     ),
   );
@@ -71,31 +67,16 @@ class _LoginPageState extends State<LoginPage> {
         SizedBox(
           width: 12.0,
         ),
-        Text("Login failed :("),
+        Text("SignUp failed :("),
       ],
     ),
   );
 
-  void isSignedIn() async {
+  void _signupwithEmailPassword() async {
     setState(() {
       isLoading = true;
     });
-    sharedPreferences = await SharedPreferences.getInstance();
-    isSignin = await _googleSignIn.isSignedIn();
-    print(isSignin);
-    if (isSignin) {
-//      Navigator.pushReplacement(
-//          context, MaterialPageRoute(builder: (context) => ContentPage()));
-    }
-    setState(() {
-      isLoading = false;
-    });
-  }
-  void _signinWithEmailPassword() async {
-    setState(() {
-      isLoading = true;
-    });
-    final FirebaseUser user = (await _auth.signInWithEmailAndPassword(
+    final FirebaseUser user = (await _auth.createUserWithEmailAndPassword(
         email: _emailTextController.text, password: _passwordTextController.text)).user;
     if (user != null) {
       setState(() {
@@ -120,13 +101,13 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
   Future handleSignIn() async {
-    sharedPreferences = await SharedPreferences.getInstance();
+    _sharedPreferences = await SharedPreferences.getInstance();
     setState(() {
       isLoading = true;
     });
     GoogleSignInAccount googleSignInAccount = await _googleSignIn.signIn();
     GoogleSignInAuthentication googleSignInAuthentication =
-        await googleSignInAccount.authentication;
+    await googleSignInAccount.authentication;
     final AuthCredential credential = GoogleAuthProvider.getCredential(
       accessToken: googleSignInAuthentication.accessToken,
       idToken: googleSignInAuthentication.idToken,
@@ -146,13 +127,13 @@ class _LoginPageState extends State<LoginPage> {
           "username": user.displayName,
           "profilePicture": user.photoUrl
         });
-        await sharedPreferences.setString("id", user.uid);
-        await sharedPreferences.setString("username", user.displayName);
-        await sharedPreferences.setString("profilePicture", user.photoUrl);
+        await _sharedPreferences.setString("id", user.uid);
+        await _sharedPreferences.setString("username", user.displayName);
+        await _sharedPreferences.setString("profilePicture", user.photoUrl);
       } else {
-        await sharedPreferences.setString("id", documents[0]["id"]);
-        await sharedPreferences.setString("username", documents[0]["username"]);
-        await sharedPreferences.setString(
+        await _sharedPreferences.setString("id", documents[0]["id"]);
+        await _sharedPreferences.setString("username", documents[0]["username"]);
+        await _sharedPreferences.setString(
             "profilePicture", documents[0]["profilePicture"]);
       }
       flutterToast.showToast(
@@ -179,37 +160,7 @@ class _LoginPageState extends State<LoginPage> {
         children: <Widget>[
           _usernameWidget(),
           _passwordWidget(),
-          _buttonLogin(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.only(left: 15.0),
-                child: Text(
-                  "Forgot password",
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w400,
-                      fontStyle: FontStyle.italic),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(right: 15.0),
-                child: GestureDetector(
-                    onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SignUpPage())),
-                    child: Text(
-                      "Sign up",
-                      textAlign: TextAlign.right,
-                      style: TextStyle(
-                          color: secondColor,
-                          fontWeight: FontWeight.bold,
-                          fontStyle: FontStyle.italic,
-                          fontSize: 18.0),
-                    )),
-              ),
-            ],
-          ),
+          _buttonSignUp(),
           Padding(
             padding: const EdgeInsets.only(top: 20.0),
             child: Row(children: <Widget>[
@@ -224,7 +175,7 @@ class _LoginPageState extends State<LoginPage> {
               Text(
                 "OR",
                 style:
-                    TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
               ),
               Expanded(
                 child: new Container(
@@ -245,7 +196,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget _usernameWidget() {
     return Padding(
       padding:
-          const EdgeInsets.only(left: 15.0, top: 8.0, right: 15.0, bottom: 8.0),
+      const EdgeInsets.only(left: 15.0, top: 8.0, right: 15.0, bottom: 8.0),
       child: Material(
         borderRadius: BorderRadius.circular(10.0),
         color: Colors.white.withOpacity(0.4),
@@ -279,7 +230,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget _passwordWidget() {
     return Padding(
       padding:
-          const EdgeInsets.only(left: 15.0, top: 8.0, right: 15.0, bottom: 8.0),
+      const EdgeInsets.only(left: 15.0, top: 8.0, right: 15.0, bottom: 8.0),
       child: Material(
         borderRadius: BorderRadius.circular(10.0),
         color: Colors.white.withOpacity(0.4),
@@ -306,7 +257,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buttonLogin() {
+  Widget _buttonSignUp() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Material(
@@ -316,12 +267,12 @@ class _LoginPageState extends State<LoginPage> {
           child: MaterialButton(
             onPressed: () async {
               if(_formKey.currentState.validate()) {
-                _signinWithEmailPassword();
+                _signupwithEmailPassword();
               }
             },
             minWidth: MediaQuery.of(context).size.width,
             child: Text(
-              "Login",
+              "Sign up",
               textAlign: TextAlign.center,
               style: TextStyle(
                   color: Colors.white,
@@ -343,7 +294,7 @@ class _LoginPageState extends State<LoginPage> {
             elevation: 0.0,
             child: MaterialButton(
               onPressed: () {
-               handleSignIn();
+                handleSignIn();
               },
               minWidth: MediaQuery.of(context).size.width,
               child: Row(
@@ -371,16 +322,10 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
-  Widget Loading() {
-    return Center(
-      child: CircularProgressIndicator(),
-    );
-  }
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height / 3;
     return Scaffold(
-      key: _key,
       body:Stack(
         children: <Widget>[
           Image.asset(
