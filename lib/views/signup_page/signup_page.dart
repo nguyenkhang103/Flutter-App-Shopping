@@ -7,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shopping_app_flutter/resource/colors.dart';
 import 'package:shopping_app_flutter/views/content_page/content_page.dart';
+import 'package:shopping_app_flutter/views/login_page/login_page.dart';
 
 class SignUpPage extends StatefulWidget {
   @override
@@ -22,7 +23,9 @@ class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
   TextEditingController _emailTextController = TextEditingController();
   TextEditingController _passwordTextController = TextEditingController();
+  TextEditingController _usernameTextController = TextEditingController();
   FlutterToast flutterToast;
+  bool hidePass = true;
 
   @override
   void initState() {
@@ -34,8 +37,10 @@ class _SignUpPageState extends State<SignUpPage> {
   void dispose() {
     _emailTextController.dispose();
     _passwordTextController.dispose();
+    _usernameTextController.dispose();
     super.dispose();
   }
+
   Widget toastSuccess = Container(
     padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
     decoration: BoxDecoration(
@@ -73,16 +78,38 @@ class _SignUpPageState extends State<SignUpPage> {
   );
 
   void _signupwithEmailPassword() async {
+    _sharedPreferences = await SharedPreferences.getInstance();
     setState(() {
       isLoading = true;
     });
     final FirebaseUser user = (await _auth.createUserWithEmailAndPassword(
-        email: _emailTextController.text, password: _passwordTextController.text)).user;
+            email: _emailTextController.text,
+            password: _passwordTextController.text))
+        .user;
     if (user != null) {
       setState(() {
         isLoading = false;
         isSignin = true;
       });
+      final QuerySnapshot querySnapshot = await Firestore.instance
+          .collection("users")
+          .where("id", isEqualTo: user.uid)
+          .getDocuments();
+      List<DocumentSnapshot> documents = querySnapshot.documents;
+
+      if (documents.length == 0) {
+        Firestore.instance.collection("users").document(user.uid).setData({
+          "id": user.uid,
+          "username": _usernameTextController.text,
+        });
+        await _sharedPreferences.setString("id", user.uid);
+        await _sharedPreferences.setString(
+            "username", _usernameTextController.text);
+      } else {
+        await _sharedPreferences.setString("id", documents[0]["id"]);
+        await _sharedPreferences.setString(
+            "username", documents[0]["username"]);
+      }
       flutterToast.showToast(
           child: toastSuccess,
           gravity: ToastGravity.BOTTOM,
@@ -100,6 +127,7 @@ class _SignUpPageState extends State<SignUpPage> {
           toastDuration: Duration(milliseconds: 500));
     }
   }
+
   Future handleSignIn() async {
     _sharedPreferences = await SharedPreferences.getInstance();
     setState(() {
@@ -107,7 +135,7 @@ class _SignUpPageState extends State<SignUpPage> {
     });
     GoogleSignInAccount googleSignInAccount = await _googleSignIn.signIn();
     GoogleSignInAuthentication googleSignInAuthentication =
-    await googleSignInAccount.authentication;
+        await googleSignInAccount.authentication;
     final AuthCredential credential = GoogleAuthProvider.getCredential(
       accessToken: googleSignInAuthentication.accessToken,
       idToken: googleSignInAuthentication.idToken,
@@ -132,7 +160,8 @@ class _SignUpPageState extends State<SignUpPage> {
         await _sharedPreferences.setString("profilePicture", user.photoUrl);
       } else {
         await _sharedPreferences.setString("id", documents[0]["id"]);
-        await _sharedPreferences.setString("username", documents[0]["username"]);
+        await _sharedPreferences.setString(
+            "username", documents[0]["username"]);
         await _sharedPreferences.setString(
             "profilePicture", documents[0]["profilePicture"]);
       }
@@ -159,8 +188,23 @@ class _SignUpPageState extends State<SignUpPage> {
       child: ListView(
         children: <Widget>[
           _usernameWidget(),
+          _emailWidget(),
           _passwordWidget(),
           _buttonSignUp(),
+          Padding(
+            padding: EdgeInsets.only(right: 15.0),
+            child: GestureDetector(
+                onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginPage())),
+                child: Text(
+                  "Sign in",
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                      color: secondColor,
+                      fontWeight: FontWeight.bold,
+                      fontStyle: FontStyle.italic,
+                      fontSize: 18.0),
+                )),
+          ),
           Padding(
             padding: const EdgeInsets.only(top: 20.0),
             child: Row(children: <Widget>[
@@ -175,7 +219,7 @@ class _SignUpPageState extends State<SignUpPage> {
               Text(
                 "OR",
                 style:
-                TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
               ),
               Expanded(
                 child: new Container(
@@ -196,7 +240,40 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget _usernameWidget() {
     return Padding(
       padding:
-      const EdgeInsets.only(left: 15.0, top: 8.0, right: 15.0, bottom: 8.0),
+          const EdgeInsets.only(left: 15.0, top: 8.0, right: 15.0, bottom: 8.0),
+      child: Material(
+        borderRadius: BorderRadius.circular(10.0),
+        color: Colors.white.withOpacity(0.4),
+        elevation: 0.0,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 12.0),
+          child: TextFormField(
+            controller: _usernameTextController,
+            decoration: InputDecoration(
+              hintText: "Username",
+              icon: Icon(
+                Icons.person_outline,
+              ),
+              border: InputBorder.none,
+            ),
+            // ignore: missing_return
+            validator: (value) {
+              if (value.isEmpty) {
+                return "The Username field cannot be empty";
+              } else {
+                return null;
+              }
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _emailWidget() {
+    return Padding(
+      padding:
+          const EdgeInsets.only(left: 15.0, top: 8.0, right: 15.0, bottom: 8.0),
       child: Material(
         borderRadius: BorderRadius.circular(10.0),
         color: Colors.white.withOpacity(0.4),
@@ -208,6 +285,7 @@ class _SignUpPageState extends State<SignUpPage> {
             decoration: InputDecoration(
               hintText: "Email",
               icon: Icon(Icons.email),
+              border: InputBorder.none,
             ),
             // ignore: missing_return
             validator: (value) {
@@ -230,28 +308,39 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget _passwordWidget() {
     return Padding(
       padding:
-      const EdgeInsets.only(left: 15.0, top: 8.0, right: 15.0, bottom: 8.0),
+          const EdgeInsets.only(left: 15.0, top: 8.0, right: 15.0, bottom: 8.0),
       child: Material(
         borderRadius: BorderRadius.circular(10.0),
         color: Colors.white.withOpacity(0.4),
         elevation: 0.0,
         child: Padding(
           padding: const EdgeInsets.only(left: 12.0),
-          child: TextFormField(
-            controller: _passwordTextController,
-            decoration: InputDecoration(
-              hintText: "Password",
-              icon: Icon(Icons.lock_outline),
-            ),
-            validator: (value) {
-              if (value.isEmpty) {
-                return "The password field cannot be empty";
-              } else if (value.length < 6) {
-                return "The password has to be at least 6 characters long";
-              }
-              return null;
-            },
-          ),
+          child: ListTile(
+              title: TextFormField(
+                controller: _passwordTextController,
+                obscureText: hidePass,
+                decoration: InputDecoration(
+                  hintText: "Password",
+                  icon: Icon(Icons.lock_outline),
+                  border: InputBorder.none,
+                ),
+                validator: (value) {
+                  if (value.isEmpty) {
+                    return "The password field cannot be empty";
+                  } else if (value.length < 6) {
+                    return "The password has to be at least 6 characters long";
+                  }
+                  return null;
+                },
+              ),
+              trailing: IconButton(
+                icon: Icon(Icons.remove_red_eye),
+                onPressed: () {
+                  setState(() {
+                    hidePass = !hidePass;
+                  });
+                },
+              )),
         ),
       ),
     );
@@ -266,7 +355,7 @@ class _SignUpPageState extends State<SignUpPage> {
           elevation: 0.0,
           child: MaterialButton(
             onPressed: () async {
-              if(_formKey.currentState.validate()) {
+              if (_formKey.currentState.validate()) {
                 _signupwithEmailPassword();
               }
             },
@@ -322,11 +411,12 @@ class _SignUpPageState extends State<SignUpPage> {
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height / 3;
     return Scaffold(
-      body:Stack(
+      body: Stack(
         children: <Widget>[
           Image.asset(
             'assets/img/background.jpg',
