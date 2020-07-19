@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shopping_app_flutter/domain/product.dart';
+import 'package:shopping_app_flutter/models/product.dart';
 import 'package:shopping_app_flutter/resource/colors.dart';
 import 'package:shopping_app_flutter/views/content_page/image_banner.dart';
 import 'package:shopping_app_flutter/views/content_page/list_product.dart';

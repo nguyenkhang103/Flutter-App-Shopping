@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:shopping_app_flutter/domain/product.dart';
+import 'package:shopping_app_flutter/models/product.dart';
 import 'package:shopping_app_flutter/views/cart_page/product_item.dart';
 
 class CardProducts extends StatefulWidget {

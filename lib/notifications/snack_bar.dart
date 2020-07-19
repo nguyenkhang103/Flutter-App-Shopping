@@ -1,80 +1,55 @@
 import 'package:flutter/material.dart';
 
-class SnackBarWidget extends StatefulWidget {
-  SnackBarWidget({Key key, this.title}) : super(key: key);
-
+class ToastSuccess extends StatelessWidget {
   final String title;
 
-  @override
-  _SnackBarWidgetState createState() => new _SnackBarWidgetState();
-}
-
-class _SnackBarWidgetState extends State<SnackBarWidget> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-
+  const ToastSuccess({Key key, this.title}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      appBar: new AppBar(
-        title: new Text(widget.title),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(25.0),
+        color: Colors.greenAccent,
       ),
-      body: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              RaisedButton(
-                  color: Colors.red,
-                  child: Text('Snackbar that throws error'),
-                  onPressed: () {
-                    Scaffold.of(context).showSnackBar(SnackBar(
-                          content: Text('It throws error'),
-                          duration: Duration(seconds: 3),
-                        ));
-                  }),
-              Builder(
-                builder: (context) => RaisedButton(
-                    color: Colors.green,
-                    child: Text('Show Snackbar using context from Builder'),
-                    onPressed: () {
-                      Scaffold.of(context).showSnackBar(SnackBar(
-                            content: Text('Context from Builder'),
-                            duration: Duration(seconds: 3),
-                          ));
-                    }),
-              ),
-              SeparateWidget(),
-              RaisedButton(
-                  color: Colors.yellow,
-                  child: Text('Show Snackbar using a GlobalKey'),
-                  onPressed: () {
-                    _scaffoldKey.currentState.showSnackBar(SnackBar(
-                      content: Text('Assign a GlobalKey to the Scaffold'),
-                      duration: Duration(seconds: 3),
-                    ));
-                  }),
-            ],
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.check, color: Colors.white,),
+          SizedBox(
+            width: 12.0,
           ),
+          Text(title, style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),),
         ],
       ),
-      // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
 
-class SeparateWidget extends StatelessWidget {
+class ToastFailed extends StatelessWidget {
+  final String title;
+
+  const ToastFailed({Key key, this.title}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    return RaisedButton(
-        color: Colors.blueAccent,
-        child: Text("Button moved to separate widget"),
-        onPressed: () {
-          Scaffold.of(context).showSnackBar(SnackBar(
-                content: Text('Button moved to separate widget'),
-                duration: Duration(seconds: 3),
-              ));
-        });
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(25.0),
+        color: Colors.redAccent,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.error_outline,color: Colors.white,),
+          SizedBox(
+            width: 12.0,
+          ),
+          Text(title, style: TextStyle(fontWeight: FontWeight.w700,color: Colors.white),),
+        ],
+      ),
+    );
   }
 }
+
+

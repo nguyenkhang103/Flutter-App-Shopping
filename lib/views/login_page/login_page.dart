@@ -1,14 +1,13 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import 'package:shopping_app_flutter/notifications/snack_bar.dart';
+import 'package:shopping_app_flutter/provider/user_provider.dart';
 import 'package:shopping_app_flutter/resource/colors.dart';
 import 'package:shopping_app_flutter/views/content_page/content_page.dart';
-import 'package:provider/provider.dart';
 import 'package:shopping_app_flutter/views/signup_page/signup_page.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:shopping_app_flutter/views/widget/loading.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -16,170 +15,25 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final GoogleSignIn _googleSignIn = new GoogleSignIn();
-  SharedPreferences sharedPreferences;
-  FirebaseAuth _auth = FirebaseAuth.instance;
-  bool isLoading = false;
-  bool isSignin = false;
   final _formKey = GlobalKey<FormState>();
   final _key = GlobalKey<ScaffoldState>();
-  TextEditingController _emailTextController = TextEditingController();
-  TextEditingController _passwordTextController = TextEditingController();
   FlutterToast flutterToast;
 
   @override
   void initState() {
     super.initState();
-//    isSignedIn();
     flutterToast = FlutterToast(context);
   }
 
-  @override
-  void dispose() {
-    _emailTextController.dispose();
-    _passwordTextController.dispose();
-    super.dispose();
-  }
-  Widget toastSuccess = Container(
-    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(25.0),
-      color: Colors.greenAccent,
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(Icons.check),
-        SizedBox(
-          width: 12.0,
-        ),
-        Text("Login was successfully!"),
-      ],
-    ),
-  );
 
-  Widget toastFail = Container(
-    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(25.0),
-      color: Colors.redAccent,
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(Icons.error),
-        SizedBox(
-          width: 12.0,
-        ),
-        Text("Login failed :("),
-      ],
-    ),
-  );
-
-  void isSignedIn() async {
-    setState(() {
-      isLoading = true;
-    });
-    sharedPreferences = await SharedPreferences.getInstance();
-    isSignin = await _googleSignIn.isSignedIn();
-    print(isSignin);
-    if (isSignin) {
-//      Navigator.pushReplacement(
-//          context, MaterialPageRoute(builder: (context) => ContentPage()));
-    }
-    setState(() {
-      isLoading = false;
-    });
-  }
-  void _signinWithEmailPassword() async {
-    setState(() {
-      isLoading = true;
-    });
-    final FirebaseUser user = (await _auth.signInWithEmailAndPassword(
-        email: _emailTextController.text, password: _passwordTextController.text)).user;
-    if (user != null) {
-      setState(() {
-        isLoading = false;
-        isSignin = true;
-      });
-      flutterToast.showToast(
-          child: toastSuccess,
-          gravity: ToastGravity.BOTTOM,
-          toastDuration: Duration(milliseconds: 500));
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => ContentPage()));
-    } else {
-      setState(() {
-        isLoading = false;
-        isSignin = false;
-      });
-      flutterToast.showToast(
-          child: toastFail,
-          gravity: ToastGravity.BOTTOM,
-          toastDuration: Duration(milliseconds: 500));
-    }
-  }
-  Future handleSignIn() async {
-    sharedPreferences = await SharedPreferences.getInstance();
-    setState(() {
-      isLoading = true;
-    });
-    GoogleSignInAccount googleSignInAccount = await _googleSignIn.signIn();
-    GoogleSignInAuthentication googleSignInAuthentication =
-        await googleSignInAccount.authentication;
-    final AuthCredential credential = GoogleAuthProvider.getCredential(
-      accessToken: googleSignInAuthentication.accessToken,
-      idToken: googleSignInAuthentication.idToken,
-    );
-    final AuthResult authResult = await _auth.signInWithCredential(credential);
-    FirebaseUser user = authResult.user;
-    if (user != null) {
-      final QuerySnapshot querySnapshot = await Firestore.instance
-          .collection("users")
-          .where("id", isEqualTo: user.uid)
-          .getDocuments();
-      List<DocumentSnapshot> documents = querySnapshot.documents;
-
-      if (documents.length == 0) {
-        Firestore.instance.collection("users").document(user.uid).setData({
-          "id": user.uid,
-          "username": user.displayName,
-          "profilePicture": user.photoUrl
-        });
-        await sharedPreferences.setString("id", user.uid);
-        await sharedPreferences.setString("username", user.displayName);
-        await sharedPreferences.setString("profilePicture", user.photoUrl);
-      } else {
-        await sharedPreferences.setString("id", documents[0]["id"]);
-        await sharedPreferences.setString("username", documents[0]["username"]);
-        await sharedPreferences.setString(
-            "profilePicture", documents[0]["profilePicture"]);
-      }
-      flutterToast.showToast(
-          child: toastSuccess,
-          gravity: ToastGravity.BOTTOM,
-          toastDuration: Duration(milliseconds: 500));
-      setState(() {
-        isLoading = false;
-      });
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => ContentPage()));
-    } else {
-      flutterToast.showToast(
-          child: toastFail,
-          gravity: ToastGravity.BOTTOM,
-          toastDuration: Duration(milliseconds: 500));
-    }
-  }
-
-  Widget formWidget() {
+  Widget formWidget(UserProvider user) {
     return Form(
       key: _formKey,
       child: ListView(
         children: <Widget>[
-          _usernameWidget(),
-          _passwordWidget(),
-          _buttonLogin(),
+          _usernameWidget(user),
+          _passwordWidget(user),
+          _buttonLogin(user),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
@@ -197,7 +51,8 @@ class _LoginPageState extends State<LoginPage> {
               Padding(
                 padding: EdgeInsets.only(right: 15.0),
                 child: GestureDetector(
-                    onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SignUpPage())),
+                    onTap: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => SignUpPage())),
                     child: Text(
                       "Sign up",
                       textAlign: TextAlign.right,
@@ -236,13 +91,13 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ]),
           ),
-          _signinWithGoogleWidget(),
+          _signInWithGoogleWidget(user),
         ],
       ),
     );
   }
 
-  Widget _usernameWidget() {
+  Widget _usernameWidget(UserProvider user) {
     return Padding(
       padding:
           const EdgeInsets.only(left: 15.0, top: 8.0, right: 15.0, bottom: 8.0),
@@ -252,31 +107,20 @@ class _LoginPageState extends State<LoginPage> {
         elevation: 0.0,
         child: Padding(
           padding: const EdgeInsets.only(left: 12.0),
-          child: TextFormField(
-            controller: _emailTextController,
+          child: TextField(
+            controller: user.email,
             decoration: InputDecoration(
               hintText: "Email",
               icon: Icon(Icons.email),
             ),
             // ignore: missing_return
-            validator: (value) {
-              if (value.isEmpty) {
-                Pattern pattern =
-                    r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
-                RegExp regex = new RegExp(pattern);
-                if (!regex.hasMatch(value))
-                  return 'Please make sure your email address is valid';
-                else
-                  return null;
-              }
-            },
           ),
         ),
       ),
     );
   }
 
-  Widget _passwordWidget() {
+  Widget _passwordWidget(UserProvider user) {
     return Padding(
       padding:
           const EdgeInsets.only(left: 15.0, top: 8.0, right: 15.0, bottom: 8.0),
@@ -286,27 +130,19 @@ class _LoginPageState extends State<LoginPage> {
         elevation: 0.0,
         child: Padding(
           padding: const EdgeInsets.only(left: 12.0),
-          child: TextFormField(
-            controller: _passwordTextController,
+          child: TextField(
+            controller: user.password,
             decoration: InputDecoration(
               hintText: "Password",
               icon: Icon(Icons.lock_outline),
             ),
-            validator: (value) {
-              if (value.isEmpty) {
-                return "The password field cannot be empty";
-              } else if (value.length < 6) {
-                return "The password has to be at least 6 characters long";
-              }
-              return null;
-            },
           ),
         ),
       ),
     );
   }
 
-  Widget _buttonLogin() {
+  Widget _buttonLogin(UserProvider user) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Material(
@@ -315,8 +151,19 @@ class _LoginPageState extends State<LoginPage> {
           elevation: 0.0,
           child: MaterialButton(
             onPressed: () async {
-              if(_formKey.currentState.validate()) {
-                _signinWithEmailPassword();
+              if (!await user.signInWithEmailPassword()) {
+                flutterToast.showToast(
+                    child: ToastFailed(title: 'Login Failed :(',),
+                    toastDuration: Duration(milliseconds: 500),
+                    gravity: ToastGravity.BOTTOM);
+              } else {
+                flutterToast.showToast(
+                    child: ToastSuccess(title: 'Login was successfully!',),
+                    toastDuration: Duration(milliseconds: 500),
+                    gravity: ToastGravity.BOTTOM);
+                user.clearController();
+                Navigator.pushReplacement(context,
+                    MaterialPageRoute(builder: (context) => ContentPage(user: user,)));
               }
             },
             minWidth: MediaQuery.of(context).size.width,
@@ -332,7 +179,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _signinWithGoogleWidget() {
+  Widget _signInWithGoogleWidget(UserProvider user) {
     return Padding(
       padding: const EdgeInsets.only(top: 50.0),
       child: Padding(
@@ -342,8 +189,20 @@ class _LoginPageState extends State<LoginPage> {
             color: mainColor,
             elevation: 0.0,
             child: MaterialButton(
-              onPressed: () {
-               handleSignIn();
+              onPressed: () async {
+                if (!await user.signInWithGoogle()){
+                  flutterToast.showToast(
+                      child: ToastFailed(title: 'Login Failed :(',),
+                      toastDuration: Duration(milliseconds: 500),
+                      gravity: ToastGravity.BOTTOM);
+                } else {
+                  flutterToast.showToast(
+                      child: ToastSuccess(title: 'Login was successfully!',),
+                      toastDuration: Duration(milliseconds: 500),
+                      gravity: ToastGravity.BOTTOM);
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) => ContentPage(user: user,)));
+                }
               },
               minWidth: MediaQuery.of(context).size.width,
               child: Row(
@@ -371,59 +230,45 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
-  Widget Loading() {
-    return Center(
-      child: CircularProgressIndicator(),
-    );
-  }
+
   @override
   Widget build(BuildContext context) {
-    double height = MediaQuery.of(context).size.height / 3;
+    final user = Provider.of<UserProvider>(context);
     return Scaffold(
       key: _key,
-      body:Stack(
-        children: <Widget>[
-          Image.asset(
-            'assets/img/background.jpg',
-            fit: BoxFit.fill,
-            height: double.infinity,
-            width: double.infinity,
-          ),
-          Container(
-            color: Colors.black.withOpacity(0.4),
-            width: double.infinity,
-            height: double.infinity,
-          ),
-          Container(
-            alignment: Alignment.topCenter,
-            child: Image.asset(
-              'assets/icons/lg.png',
-              width: 280.0,
-              height: 240.0,
-            ),
-          ),
-          Center(
-            child: Padding(
-              padding: EdgeInsets.only(top: 200.0),
-              child: Center(
-                child: formWidget(),
-              ),
-            ),
-          ),
-          Visibility(
-            visible: isLoading ?? true,
-            child: Center(
-              child: Container(
-                alignment: Alignment.center,
-                color: Colors.white.withOpacity(0.9),
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+      body: user.status == Status.Authenticating
+          ? LoadingWidget()
+          : Stack(
+              children: <Widget>[
+                Image.asset(
+                  'assets/img/background.jpg',
+                  fit: BoxFit.fill,
+                  height: double.infinity,
+                  width: double.infinity,
                 ),
-              ),
+                Container(
+                  color: Colors.black.withOpacity(0.4),
+                  width: double.infinity,
+                  height: double.infinity,
+                ),
+                Container(
+                  alignment: Alignment.topCenter,
+                  child: Image.asset(
+                    'assets/icons/lg.png',
+                    width: 280.0,
+                    height: 240.0,
+                  ),
+                ),
+                Center(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 200.0),
+                    child: Center(
+                      child: formWidget(user),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          )
-        ],
-      ),
     );
   }
 }
